@@ -19,3 +19,6 @@ clean: <OTHER_CLEAN TARGETS>
 
 clean-doc:
 	rm -rf README.md doc/xml
+	
+help:
+	@echo "make all | clean | help"

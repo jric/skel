@@ -1,0 +1,11 @@
+{
+	"folders": [
+		{
+			"path": ".."
+		},
+		{
+			"path": "../../socialvoter/src/server/js/test"
+		}
+	],
+	"settings": {}
+}

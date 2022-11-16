@@ -1,4 +1,14 @@
 #!node
+
+import { fileURLToPath } from 'url'
+import { dirname } from 'path'
+import { mkdir, copyFile, constants } from 'node:fs';
+import * as path from 'path';
+// import { default as docopt } from '@eyalsh/docopt';  see https://github.com/Eyal-Shalev/docopt.js/issues/12
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
+
 const doc = `
 Goal: Make it easy and consistent to start a new typescript project
 Tenet #1: Start with most basic
@@ -18,10 +28,18 @@ other configurations as desired.
 
 `;
 
-const docopt = require('@eyalsh/docopt').default;
+// implementing a stand-in for now
+function docopt(doc) {
+    const path = process.argv[2];
+    if (path == undefined)
+        throw new Error("Missing path." + doc);
+    return {
+        '<path>': path
+    }
+}
 
 let options = docopt(doc);
-let path = options['<path>'];
+let newPath = options['<path>'];
 let config = options['<config>'];
 
 // Writes usage, along with optional error
@@ -32,10 +50,21 @@ function usage(msg) {
     return msg ? 1 : 0;
 }
 
-if (!path) usage("<path> not specified");
-if (!config) usage("<config> not specified");
+if (!newPath) usage("<path> not specified");
 
 // BASE setup
+
+// into path, copy README.md, update name of project (not doing that for now)
+
+mkdir(newPath, { recursive: true }, (err) => {
+    if (err) throw err;
+    copyFile(__dirname + path.sep + 'README.md', newPath + path.sep + 'README.md',
+        constants.COPYFILE_EXCL /* don't overwrite */, (err) => {
+        if (err) {
+            console.error(err);
+        }
+    });
+});
 
 // create path/build and path/src
 // change to path current directory

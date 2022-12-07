@@ -4,8 +4,11 @@ import { fileURLToPath } from 'url'
 import { dirname } from 'path'
 import { mkdir, copyFile, constants } from 'node:fs';
 import * as path from 'path';
+// import docopt from '@eyalsh/docopt'; see https://github.com/Eyal-Shalev/docopt.js/issues/13
 // import { default as docopt } from '@eyalsh/docopt';  see https://github.com/Eyal-Shalev/docopt.js/issues/12
 
+const TSC_OUTPUT_DIR = 'build'
+const TSC_SOURCE_DIR = 'src'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
@@ -56,7 +59,7 @@ if (!newPath) usage("<path> not specified");
 
 // into path, copy README.md, update name of project (not doing that for now)
 
-mkdir(newPath, { recursive: true }, (err) => {
+mkdir(newPath + path.sep + TSC_OUTPUT_DIR, { recursive: true }, (err) => {
     if (err) throw err;
     copyFile(__dirname + path.sep + 'README.md', newPath + path.sep + 'README.md',
         constants.COPYFILE_EXCL /* don't overwrite */, (err) => {
@@ -64,6 +67,9 @@ mkdir(newPath, { recursive: true }, (err) => {
             console.error(err);
         }
     });
+    mkdir(newPath + path.sep + TSC_SOURCE_DIR, { recursive: false }, (err => {
+        if (err) throw err;
+    }));
 });
 
 // create path/build and path/src

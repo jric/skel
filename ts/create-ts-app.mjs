@@ -58,6 +58,7 @@ if (!newPath) usage("<path> not specified");
 // BASE setup
 
 // into path, copy README.md, update name of project (not doing that for now)
+// create path/build and path/src
 
 mkdir(newPath + path.sep + TSC_OUTPUT_DIR, { recursive: true }, (err) => {
     if (err) throw err;
@@ -72,7 +73,6 @@ mkdir(newPath + path.sep + TSC_OUTPUT_DIR, { recursive: true }, (err) => {
     }));
 });
 
-// create path/build and path/src
 // change to path current directory
 // run tsc --init; try with --rootDir ./src and --outDir ./build (check tsconfig.json)
 // create file src/app.ts

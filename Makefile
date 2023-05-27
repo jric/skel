@@ -3,9 +3,12 @@ CC = gcc
 CFLAGS = -std=c++17 -pedantic -Wall -g
 OBJECTS = cracker.o
 LIBS = -lstdc++
+PHONY_TARGETS = all:test:clean:help
+
+.PHONY: $(subst :, ,$(PHONY_TARGETS))
 
 # This is the default target
-all: <PHONY TARGETS HERE>
+all: <ALL DELIVERABLES HERE>
 
 # For C Projects
 %.o: %.cc
@@ -21,4 +24,4 @@ clean-doc:
 	rm -rf README.md doc/xml
 	
 help:
-	@echo "make all | clean | help"
+	@echo $(subst :," | ",$(PHONY_TARGETS))

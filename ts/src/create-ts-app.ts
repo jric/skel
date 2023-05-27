@@ -32,12 +32,13 @@ other configurations as desired.
 `;
 
 // implementing a stand-in for now
-function docopt(doc) {
+function docopt(doc: string) {
     const path = process.argv[2];
     if (path == undefined)
         throw new Error("Missing path." + doc);
     return {
-        '<path>': path
+        '<path>': path,
+        '<config>': null
     }
 }
 
@@ -47,7 +48,7 @@ let config = options['<config>'];
 
 // Writes usage, along with optional error
 // @Returns 1 if error, else 0
-function usage(msg) {
+function usage(msg: string) {
     if (msg) console.error(msg);
     console.log(doc);
     return msg ? 1 : 0;

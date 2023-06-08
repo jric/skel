@@ -2,10 +2,11 @@
 
 import { fileURLToPath } from 'url'
 import { dirname } from 'path'
-import { mkdir, copyFile, constants } from 'node:fs';
-import * as path from 'path';
-// import docopt from '@eyalsh/docopt'; see https://github.com/Eyal-Shalev/docopt.js/issues/13
-// import { default as docopt } from '@eyalsh/docopt';  see https://github.com/Eyal-Shalev/docopt.js/issues/12
+import * as p from 'path';
+import { promises as fs } from 'fs'
+import { command, binary, run, positional } from 'cmd-ts';
+
+
 
 const TSC_OUTPUT_DIR = 'build'
 const TSC_SOURCE_DIR = 'src'
@@ -13,77 +14,68 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
 const doc = `
-Goal: Make it easy and consistent to start a new typescript project
+Goal: Make it easy and consistent to start a new typescript
+project
 Tenet #1: Start with most basic
 Tenet #2: Add functionality as desired
 Tenet #3: Select from pre-canned, or create a new configuration
 
-Usage: ${__filename} <path> [<config>]
- - <path>: where to create the project; final element of path will be project directory
- - <config>: special configuration to use; none currently supported
-
-Run this script to create a new barebones typescript node project as described here:
+Run this script to create a new barebones typescript node
+project as described here:
 https://www.typescripttutorial.net/typescript-tutorial/nodejs-typescript/
 
-With this basic setup, your typescript will automatically be recompiled and run as Javascript
-as you make changes.  Following the doc, we use npm and supporting modules, but should provide
-other configurations as desired.
-
+With this basic setup, your typescript will automatically be
+recompiled and run as Javascript as you make changes.
+Following the doc, we use npm and supporting modules, but
+should provide other configurations as desired.
 `;
 
-// implementing a stand-in for now
-function docopt(doc: string) {
-    const path = process.argv[2];
-    if (path == undefined)
-        throw new Error("Missing path." + doc);
-    return {
-        '<path>': path,
-        '<config>': null
+const cmd = command({
+    name: 'create-ts-app',
+    description: doc,
+    version: '1.0.0',
+    args: {
+        'path': positional({ displayName: 'path', description: 'path to the directory to set up' })
+    },
+    handler: (args) => {
+        create(args);
     }
-}
-
-let options = docopt(doc);
-let newPath = options['<path>'];
-let config = options['<config>'];
-
-// Writes usage, along with optional error
-// @Returns 1 if error, else 0
-function usage(msg: string) {
-    if (msg) console.error(msg);
-    console.log(doc);
-    return msg ? 1 : 0;
-}
-
-if (!newPath) usage("<path> not specified");
-
-// BASE setup
-
-// into path, copy README.md, update name of project (not doing that for now)
-// create path/build and path/src
-
-mkdir(newPath + path.sep + TSC_OUTPUT_DIR, { recursive: true }, (err) => {
-    if (err) throw err;
-    copyFile(__dirname + path.sep + 'README.md', newPath + path.sep + 'README.md',
-        constants.COPYFILE_EXCL /* don't overwrite */, (err) => {
-        if (err) {
-            console.error(err);
-        }
-    });
-    mkdir(newPath + path.sep + TSC_SOURCE_DIR, { recursive: false }, (err => {
-        if (err) throw err;
-    }));
 });
 
-// change to path current directory
-// run tsc --init; try with --rootDir ./src and --outDir ./build (check tsconfig.json)
-// create file src/app.ts
-// run 'tsc'
-// run 'node ./build/app.js to verify working
-// run 'npm init --yes' to set up the node directory
-// npm install --g nodemon concurrently
-// add these to "scripts" in package.json:
-//          "start:build": "tsc -w",
-//          "start:run": "nodemon build/app.js",
-//          "start": "concurrently npm:start:*"
-// change "main" to "app.js" in package.json
+async function create(args:{path: string}): Promise<void> {
+    const path = args.path;
+    // BASE setup
 
+    // into path, copy README.md, update name of project (not doing that for now)
+    await mkPathIfNotExists(path)
+    copyReadmeIn(path);
+    // create path/build and path/src
+    const p1 = fs.mkdir(path + p.sep + TSC_SOURCE_DIR);
+    const p2 = fs.mkdir(path + p.sep + TSC_OUTPUT_DIR);
+    // change to path current directory
+    // TODO cwd
+    await Promise.all([p1, p2]); // dirs must be created before running tsc
+    // run tsc --init; try with --rootDir ./src and --outDir ./build (check tsconfig.json)
+    // create file src/app.ts
+    // run 'tsc'
+    // run 'node ./build/app.js to verify working
+    // run 'npm init --yes' to set up the node directory
+    // npm install --g nodemon concurrently
+    // add these to "scripts" in package.json:
+    //          "start:build": "tsc -w",
+    //          "start:run": "nodemon build/app.js",
+    //          "start": "concurrently npm:start:*"
+    // change "main" to "app.js" in package.json
+}
+
+const binCommand = binary(cmd); // just keep first two args
+run(binCommand, process.argv);
+
+async function mkPathIfNotExists(pathToProj: string) {
+    return fs.mkdir(pathToProj, { recursive: false });
+}
+
+async function copyReadmeIn(path: string) {
+    return fs.copyFile(__dirname + p.sep + 'README.md', path + p.sep,
+        fs.constants.COPYFILE_EXCL /* don't overwrite */);    
+}

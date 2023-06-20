@@ -5,8 +5,7 @@ import { dirname } from 'path'
 import * as p from 'path';
 import { promises as fs } from 'fs'
 import { command, binary, run, positional } from 'cmd-ts';
-
-
+import { createLogger, format, transports } from 'winston';
 
 const TSC_OUTPUT_DIR = 'build'
 const TSC_SOURCE_DIR = 'src'
@@ -30,6 +29,15 @@ Following the doc, we use npm and supporting modules, but
 should provide other configurations as desired.
 `;
 
+const l = createLogger({
+    level: 'info',
+    format: format.prettyPrint(),
+    defaultMeta: { service: 'create-ts-app' },
+    transports: [new transports.Console({
+        format: format.simple(),
+      })]
+});
+
 const cmd = command({
     name: 'create-ts-app',
     description: doc,
@@ -50,8 +58,8 @@ async function create(args:{path: string}): Promise<void> {
     await mkPathIfNotExists(path)
     copyReadmeIn(path);
     // create path/build and path/src
-    const p1 = fs.mkdir(path + p.sep + TSC_SOURCE_DIR);
-    const p2 = fs.mkdir(path + p.sep + TSC_OUTPUT_DIR);
+    const p1 = mkPathIfNotExists(p.resolve(path, TSC_SOURCE_DIR));
+    const p2 = mkPathIfNotExists(p.resolve(path, TSC_OUTPUT_DIR));
     // change to path current directory
     // TODO cwd
     await Promise.all([p1, p2]); // dirs must be created before running tsc
@@ -72,10 +80,24 @@ const binCommand = binary(cmd); // just keep first two args
 run(binCommand, process.argv);
 
 async function mkPathIfNotExists(pathToProj: string) {
-    return fs.mkdir(pathToProj, { recursive: false });
+    return fs.access(pathToProj)
+        .then(() => {
+            // Directory already exists - no-op
+        })
+        .catch(() => {
+            return fs.mkdir(pathToProj, { recursive: false })
+        });
 }
 
+/** Don't overwrite if README already present */
 async function copyReadmeIn(path: string) {
-    return fs.copyFile(__dirname + p.sep + 'README.md', path + p.sep,
-        fs.constants.COPYFILE_EXCL /* don't overwrite */);    
+    const destPath = p.resolve(path, 'README.md');
+    return fs.access(destPath, fs.constants.F_OK)
+        .then(() => {
+            l.warn("path already exists: ", destPath);
+        })
+        .catch(() => {
+            return fs.copyFile(p.resolve(__dirname, '..', 'README.md'), destPath,
+                fs.constants.COPYFILE_EXCL /* don't overwrite */);
+        });
 }

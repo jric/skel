@@ -14,8 +14,8 @@
   "author": "https://github.com/jric",
   "license": "ISC",
   "dependencies": {
-    "@eyalsh/docopt": "^1.0.7",
-    "cmd-ts": "^0.12.1"
+    "cmd-ts": "^0.12.1",
+    "winston": "^3.9.0"
   },
   "devDependencies": {
     "@types/chai": "^4.3.3",

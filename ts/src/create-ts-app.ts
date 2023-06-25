@@ -60,11 +60,10 @@ async function create(args:{path: string}): Promise<void> {
     // create path/build and path/src
     const p1 = mkPathIfNotExists(p.resolve(path, TSC_SOURCE_DIR));
     const p2 = mkPathIfNotExists(p.resolve(path, TSC_OUTPUT_DIR));
-    // change to path current directory
-    // TODO cwd
     await Promise.all([p1, p2]); // dirs must be created before running tsc
     // run tsc --init; try with --rootDir ./src and --outDir ./build (check tsconfig.json)
     // create file src/app.ts
+    createAppTs({destPath: path});
     // run 'tsc'
     // run 'node ./build/app.js to verify working
     // run 'npm init --yes' to set up the node directory
@@ -100,4 +99,39 @@ async function copyReadmeIn(path: string) {
             return fs.copyFile(p.resolve(__dirname, '..', 'README.md'), destPath,
                 fs.constants.COPYFILE_EXCL /* don't overwrite */);
         });
+}
+
+// Function to create the app.ts file
+function createAppTs(args: {destPath: string}) {
+    const sourceFilePath = p.resolve(__dirname, '..', 'skel-base.ts');
+    const newFileName = 'app.ts';
+
+    areThereAnyTsFiles(args.destPath).then(hasTsFiles => {
+        if (!hasTsFiles) {
+            copyAndRenameFile(sourceFilePath, args.destPath, newFileName).then(() => {
+                console.log('Created %s', p.resolve(args.destPath, newFileName));
+            }).catch(err => {
+                console.error(`Error copying and renaming file: ${err}`);
+            });
+        } else {
+            console.log('The directory already contains .ts files; app.ts not created.');
+        }
+    }).catch(err => {
+        console.error(`Error checking directory for .ts files: ${err}`);
+    });
+}
+
+// Function to check if directory has any .ts file
+// @returns true iff there is at least one ts file in the directory
+function areThereAnyTsFiles(dirPath: string): Promise<boolean> {
+    return fs.readdir(dirPath).then(files => {
+        return files.some(file => p.extname(file) === '.ts');
+    });
+}
+
+// Function to copy and rename file
+// @param sourcePath includes the old file name
+// @param targetPath only includes the new directory path with no file name
+function copyAndRenameFile(sourcePath: string, targetPath: string, newFileName: string): Promise<void> {
+    return fs.copyFile(sourcePath, p.join(targetPath, newFileName));
 }

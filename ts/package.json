@@ -2,11 +2,12 @@
   "name": "skel-ts",
   "version": "1.0.0",
   "description": "Skeleton project generation for typescript",
-  "main": "create-node.js",
+  "main": "create-ts-app.js",
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc && (chmod ug+x build/create*)",
+    "create-project": "node build/create-ts-app.js",
     "start:build": "tsc -w",
     "start:run": "nodemon build/app.js",
     "start": "concurrently npm:start:*"

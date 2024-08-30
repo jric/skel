@@ -1,0 +1,4 @@
+To test with a given python:
+
+ pip(3) install pytest
+ pytest demo.py

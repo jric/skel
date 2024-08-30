@@ -7,7 +7,7 @@ from docopt import docopt
 REPLACE DESCRIPTION OF THE MODULE OR PROGRAM HERE
 '''
 
-usage = """
+USAGE = """
 Usage:
   REPLACE.py [--verbose]... [--debug]
   REPLACE.py -h | --help
@@ -27,6 +27,6 @@ class TestREPLACE(unittest.TestCase):
         pass
 
 if __name__ == '__main__':
-    args = docopt(usage, version='REPLACE.py 1.0')
+    args = docopt(USAGE, version='REPLACE.py 1.0')
     l.setFromArgs(args)
     unittest.main() 
